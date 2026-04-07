@@ -1,0 +1,12 @@
+<h2>Список задач</h2>
+<app-task-form (taskAdded)="addTask($event)"></app-task-form>
+
+<ul>
+  <li *ngFor="let task of tasks">
+    <app-task-item
+      [task]="task"
+      (delete)="deleteTask($event)"
+      (toggle)="toggleTaskCompletion($event)">
+    </app-task-item>
+  </li>
+</ul>
