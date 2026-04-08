@@ -1,35 +1,67 @@
+using Microsoft.EntityFrameworkCore;
 using ToDoList.Entities;
+using ToDoList.Persistence.Interfaces;
 
 namespace ToDoList.Persistence;
 
-public class TodoRepository
+public class TodoRepository : ITodoRepository
 {
-    private readonly List<TodoEntity> _todos = new List<TodoEntity>();
+    private readonly IDatabaseContext _context;
 
-    public IEnumerable<TodoEntity> GetTodos() => _todos;
-
-    public TodoEntity? GetTodoById(Guid id) => _todos.FirstOrDefault(t => t.Id == id);
-
-    public TodoEntity AddTodo(string title)
+    public TodoRepository(IDatabaseContext context)
     {
-        var todo = new TodoEntity { Title = title };
-        _todos.Add(todo);
+        _context = context;
+    }
+
+    public async Task<IEnumerable<TodoEntity>> GetTodos()
+    {
+        return await _context.TodoItems.ToListAsync();
+    }
+
+    public async Task<TodoEntity?> GetTodoById(Guid id)
+    {
+        return await _context.TodoItems
+            .FirstOrDefaultAsync(t => t.Id == id);
+    }
+
+    public async Task<TodoEntity> AddTodo(string title)
+    {
+        var todo = new TodoEntity
+        {
+            Id = Guid.NewGuid(),
+            Title = title,
+            IsCompleted = false
+        };
+
+        _context.TodoItems.Add(todo);
+        await _context.SaveChangesAsync();
+
         return todo;
     }
 
-    public bool DeleteTodo(Guid id)
+    public async Task<bool> DeleteTodo(Guid id)
     {
-        var todo = GetTodoById(id);
+        var todo = await GetTodoById(id);
         if (todo == null) return false;
-        _todos.Remove(todo);
+
+        _context.TodoItems.Remove(todo);
+        await _context.SaveChangesAsync();
+
         return true;
     }
 
-    public TodoEntity? ToggleTodo(Guid id)
+    public async Task<TodoEntity?> ChangeTodo(Guid id, string title, bool isCompleted)
     {
-        var todo = GetTodoById(id);
+        var todo = await GetTodoById(id);
         if (todo == null) return null;
-        todo.IsCompleted = !todo.IsCompleted;
+
+        if (todo.IsCompleted != isCompleted || todo.Title != title)
+        {
+            todo.IsCompleted = isCompleted;
+            todo.Title = title;
+            await _context.SaveChangesAsync();
+        }
+
         return todo;
     }
 }

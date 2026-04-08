@@ -10,17 +10,19 @@ namespace ToDoList.Controllers;
 [Route("api/[controller]")]
 public class TodoController : Controller
 {
-    private readonly IDatabaseContext _dbContext;
+    private readonly ITodoRepository _todoRepository;
 
-    public TodoController(IDatabaseContext dbContext)
+    public TodoController(ITodoRepository todoRepository)
     {
-        _dbContext = dbContext;
+        _todoRepository = todoRepository;
     }
     
     [HttpGet("getall")]
     public async Task<ActionResult<IEnumerable<TodoDto>>> GetAll()
     {
-        var items = await _dbContext.TodoItems
+        var items = await _todoRepository.GetTodos();
+
+        var dtos = items
             .OrderByDescending(x => x.CreatedAt)
             .Select(x => new TodoDto
             {
@@ -29,53 +31,58 @@ public class TodoController : Controller
                 IsCompleted = x.IsCompleted,
                 CreatedAt = x.CreatedAt
             })
-            .ToListAsync();
+            .ToList();
 
-        return Ok(items);
+        return Ok(dtos);
     }
     
     [HttpPost("create")]
     public async Task<ActionResult<TodoDto>> Create([FromBody] TodoDto dto)
     {
-        var entity = new TodoEntity
+        var entity = await _todoRepository.AddTodo(dto.Title);
+
+        var result = new TodoDto
         {
-            Title = dto.Title
+            Id = entity.Id,
+            Title = entity.Title,
+            IsCompleted = entity.IsCompleted,
+            CreatedAt = entity.CreatedAt
         };
 
-        _dbContext.TodoItems.Add(entity);
-        await _dbContext.SaveChangesAsync();
-
-        return  new TodoDto { Id = entity.Id, Title = entity.Title, CreatedAt = entity.CreatedAt};
+        return Ok(result);
     }
     
     [HttpPatch("update")]
     public async Task<ActionResult<TodoDto>> Update([FromBody] TodoDto dto)
     {
-        var entity = await _dbContext.TodoItems.FindAsync(dto.Id);
-        
+        if (dto.Id == Guid.Empty) return BadRequest();
+        var entity = await _todoRepository.GetTodoById(dto.Id.Value);
+
         if (entity == null)
-        {
             return NotFound();
-        }
-        
+
         entity.Title = dto.Title;
         entity.IsCompleted = dto.IsCompleted;
-        
-        _dbContext.TodoItems.Update(entity);
-        await _dbContext.SaveChangesAsync();
 
-        return  new TodoDto { Id = entity.Id, Title = entity.Title, CreatedAt = entity.CreatedAt};
+        await _todoRepository.ChangeTodo(entity.Id, dto.Title, dto.IsCompleted); 
+
+        var result = new TodoDto
+        {
+            Id = entity.Id,
+            Title = entity.Title,
+            IsCompleted = entity.IsCompleted,
+            CreatedAt = entity.CreatedAt
+        };
+
+        return Ok(result);
     }
     
     [HttpDelete("delete/{id}")]
     public async Task<ActionResult> Delete(Guid id)
     {
-        var entity = await _dbContext.TodoItems.FindAsync(id);
-        if (entity == null) return NotFound();
+        var deleted = await _todoRepository.DeleteTodo(id);
+        if (!deleted) return NotFound();
 
-        _dbContext.TodoItems.Remove(entity);
-        await _dbContext.SaveChangesAsync();
-        
         return Ok();
     }
 }

@@ -1,11 +1,12 @@
 using HotChocolate;
 using ToDoList.Entities;
+using ToDoList.Persistence.Interfaces;
 
 namespace ToDoList.Persistence.GraphQL;
 
 public class TodoQueries
 {
-    public IEnumerable<TodoEntity> GetTodos([Service] TodoRepository repo) => repo.GetTodos();
+    public Task<IEnumerable<TodoEntity>> GetTodos([Service] ITodoRepository repository) => repository.GetTodos();
 
-    public TodoEntity? GetTodoById(Guid id, [Service] TodoRepository repo) => repo.GetTodoById(id);
+    public Task<TodoEntity?> GetTodoById(Guid id, [Service] ITodoRepository repo) => repo.GetTodoById(id);
 }

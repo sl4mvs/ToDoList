@@ -1,13 +1,13 @@
-using HotChocolate;
 using ToDoList.Entities;
+using ToDoList.Persistence.Interfaces;
 
 namespace ToDoList.Persistence.GraphQL;
 
 public class TodoMutations
 {
-    public TodoEntity AddTodo(string title, [Service] TodoRepository repo) => repo.AddTodo(title);
+    public Task<TodoEntity> AddTodo(string title, [Service] ITodoRepository repo) => repo.AddTodo(title);
 
-    public bool DeleteTodo(Guid id, [Service] TodoRepository repo) => repo.DeleteTodo(id);
+    public Task<bool> DeleteTodo(Guid id, [Service] ITodoRepository repo) => repo.DeleteTodo(id);
 
-    public TodoEntity? ToggleTodo(Guid id, [Service] TodoRepository repo) => repo.ToggleTodo(id);
+    public Task<TodoEntity?> ChangeTodo(Guid id, string title, bool isCompleted, [Service] ITodoRepository repo) => repo.ChangeTodo(id, title, isCompleted);
 }

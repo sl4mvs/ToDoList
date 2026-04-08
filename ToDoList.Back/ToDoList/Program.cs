@@ -9,8 +9,6 @@ builder.Services.AddDbContext<DatabaseContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddSingleton<TodoRepository>();
-
 // GraphQL
 builder.Services
     .AddGraphQLServer()
@@ -18,6 +16,7 @@ builder.Services
     .AddMutationType<TodoMutations>();
 
 builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
+builder.Services.AddScoped<ITodoRepository, TodoRepository>();
 
 builder.Services.AddControllers();
 
