@@ -1,7 +1,20 @@
-<label>
-  <input type="checkbox" [checked]="todo.completed" (change)="onToggle()"/>
-  <span [style.text-decoration]="todo.completed ? 'line-through' : 'none'">
-    {{ todo.title }}
-  </span>
-</label>
-<button (click)="onDelete()">Удалить</button>
+<div class="todo-card">
+  <div class="todo-left">
+    <input
+      type="checkbox"
+      [checked]="todo.isCompleted"
+      (change)="onToggle()" />
+  </div>
+
+  <div class="todo-content">
+    <div class="todo-title" [class.completed]="todo.isCompleted">
+      {{ todo.title }}
+    </div>
+
+    <div class="todo-status">
+      {{ todo.isCompleted ? 'Завершена' : 'Активна' }}
+    </div>
+  </div>
+
+  <button class="delete-btn" (click)="onDelete()">✕</button>
+</div>
