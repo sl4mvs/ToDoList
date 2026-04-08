@@ -8,4 +8,7 @@ public class TodoEntity
     public string Title { get; set; }
     public bool IsCompleted { get; set; }
     public DateTime CreatedAt { get; set; }
+    
+    public Guid? AuthorId { get; set; }
+    public AuthorEntity Author { get; set; }
 }

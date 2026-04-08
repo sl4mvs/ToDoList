@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ToDoList.Persistence;
+using ToDoList.Persistence.GraphQL;
 using ToDoList.Persistence.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,12 +9,22 @@ builder.Services.AddDbContext<DatabaseContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSingleton<TodoRepository>();
+
+// GraphQL
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<TodoQueries>()
+    .AddMutationType<TodoMutations>();
+
 builder.Services.AddScoped<IDatabaseContext, DatabaseContext>();
 
 builder.Services.AddControllers();
 
 
 var app = builder.Build();
+
+app.MapGraphQL();
 
 using var scope = app.Services.CreateScope();
 var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();

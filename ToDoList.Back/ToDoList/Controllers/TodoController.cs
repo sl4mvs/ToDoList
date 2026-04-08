@@ -26,7 +26,8 @@ public class TodoController : Controller
             {
                 Id = x.Id,
                 Title = x.Title,
-                IsCompleted = x.IsCompleted
+                IsCompleted = x.IsCompleted,
+                CreatedAt = x.CreatedAt
             })
             .ToListAsync();
 
@@ -66,7 +67,7 @@ public class TodoController : Controller
         return  new TodoDto { Id = entity.Id, Title = entity.Title, CreatedAt = entity.CreatedAt};
     }
     
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("delete/{id}")]
     public async Task<ActionResult> Delete(Guid id)
     {
         var entity = await _dbContext.TodoItems.FindAsync(id);
